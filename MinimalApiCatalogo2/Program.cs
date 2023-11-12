@@ -1,6 +1,11 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MinimalApiCatalogo2.Context;
 using MinimalApiCatalogo2.Models;
+using MinimalApiCatalogo2.Services;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,11 +21,55 @@ options.UseSqlServer(connectionString: "Data Source=PRILLNOTEBOOK28\\SQLEXPRESS;
 em ambientes de desenvolvimento e nunca em produção. Você pode desativar a verificação SSL 
 adicionando "TrustServerCertificate=true" à sua string de conexão. No entanto, isso torna a conexão menos segura.*/
 
+//Registrando Serviço Jwt
+builder.Services.AddSingleton<ITokenService>(new TokenService());
+
+//Registrando serviços de autenticações e validação de Token
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["audience"],
+        IssuerSigningKey = new SymmetricSecurityKey
+        (Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Kei"]))
+    };
+});
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 app.MapGet("/", () => "Catálogo de Produtos - 2023").ExcludeFromDescription();
 
-app.MapGet("/categorias", async(AppDbContext db) => await db.Categorias.ToListAsync());
+app.MapPost("/login", [AllowAnonymous] (UserModel userModel, ITokenService tokenService) =>
+{
+    if (userModel == null)
+    {
+        return Results.BadRequest("Login Inválido");
+    }
+    if (userModel.UserName == "ednaldo" && userModel.Password == "teste@123")
+    {
+        var tokenString = tokenService.GerarToken(
+            app.Configuration["jwt:Key"],
+            app.Configuration["Jwt:Issuer"],
+            app.Configuration["Jwt:Audience"], userModel);
+        return Results.Ok(new { token = tokenString });
+    }
+    else
+    {
+        return Results.BadRequest("Login Inválido");
+    }
+}).Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status200OK)
+            .WithName("Login")
+            .WithTags("Autenticacao");
+
+app.MapGet("/categorias", async (AppDbContext db) => await db.Categorias.ToListAsync());
 
 app.MapGet("/categorias/{id:int}", async (int id, AppDbContext db) =>
 {
@@ -37,15 +86,15 @@ app.MapPost("/categorias", async (Categoria categoria, AppDbContext db) =>
     return Results.Created($"/categorias/{categoria.CategoriaId}", categoria);
 });
 
-app.MapPut("/categorias/{id:int}", async (int id,Categoria categoria, AppDbContext db) =>
+app.MapPut("/categorias/{id:int}", async (int id, Categoria categoria, AppDbContext db) =>
 {
-    if(categoria.CategoriaId != id)
+    if (categoria.CategoriaId != id)
     {
         return Results.BadRequest();
     }
     var categoriaDB = await db.Categorias.FindAsync(id);
-    if(categoriaDB is null)return Results.NotFound();
-    
+    if (categoriaDB is null) return Results.NotFound();
+
     categoriaDB.Nome = categoria.Nome;
     categoriaDB.Descricao = categoria.Descricao;
 
@@ -56,7 +105,7 @@ app.MapPut("/categorias/{id:int}", async (int id,Categoria categoria, AppDbConte
 app.MapDelete("/categorias/{id:int}", async (int id, AppDbContext db) =>
 {
     var categoria = await db.Categorias.FindAsync(id);
-    if(categoria is null)
+    if (categoria is null)
     {
         return Results.NotFound();
     }
@@ -70,10 +119,10 @@ app.MapDelete("/categorias/{id:int}", async (int id, AppDbContext db) =>
 app.MapGet("/produtos", async (AppDbContext db) => await db.Produtos.ToListAsync());
 
 app.MapGet("/produtos/{id:int}", async (int id, AppDbContext db) =>
-{ 
-    return  await db.Produtos.FindAsync(id)
+{
+    return await db.Produtos.FindAsync(id)
          is Produto produto
-        ?Results.Ok(produto) 
+        ? Results.Ok(produto)
         : Results.NotFound();
 });
 
@@ -135,6 +184,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+//Ativando o serviço de autenticação e autorização
+app.UseAuthentication();
+app.UseAuthentication();
 app.Run();
 
