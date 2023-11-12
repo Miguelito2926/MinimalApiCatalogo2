@@ -1,4 +1,6 @@
-﻿namespace MinimalApiCatalogo2.Models;
+﻿using System.Text.Json.Serialization;
+
+namespace MinimalApiCatalogo2.Models;
 
 public class Produto
 {
@@ -12,5 +14,6 @@ public class Produto
 
     //Afirmação explicita de relacionamento um para muitos
     public int CategoriaId { get; set; }
+    [JsonIgnore]
     public Categoria? Categoria { get; set; }
 }
