@@ -9,7 +9,7 @@ namespace MinimalApiCatalogo2.Services;
 public class TokenService : ITokenService
 {
 
-    string GerarToken(string key, string issuer, string audience, UserModel user)
+ public string GerarToken(string key, string issuer, string audience, UserModel user)
     {
         var claims = new[]
         {

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MinimalApiCatalogo2.Context;
@@ -27,7 +28,7 @@ builder.Services.AddSingleton<ITokenService>(new TokenService());
 //Registrando serviços de autenticações e validação de Token
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
-    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = true,
@@ -37,7 +38,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["audience"],
         IssuerSigningKey = new SymmetricSecurityKey
-        (Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Kei"]))
+        (Encoding.UTF8.GetBytes(builder.Configuration["Jwt:key"]))
     };
 });
 builder.Services.AddAuthorization();
@@ -69,7 +70,7 @@ app.MapPost("/login", [AllowAnonymous] (UserModel userModel, ITokenService token
             .WithName("Login")
             .WithTags("Autenticacao");
 
-app.MapGet("/categorias", async (AppDbContext db) => await db.Categorias.ToListAsync());
+app.MapGet("/categorias", async (AppDbContext db) => await db.Categorias.ToListAsync()).RequireAuthorization();
 
 app.MapGet("/categorias/{id:int}", async (int id, AppDbContext db) =>
 {
@@ -116,7 +117,7 @@ app.MapDelete("/categorias/{id:int}", async (int id, AppDbContext db) =>
 });
 
 //---------------ENDPOINTS PARA PRODUTOS---------------------
-app.MapGet("/produtos", async (AppDbContext db) => await db.Produtos.ToListAsync());
+app.MapGet("/produtos", async (AppDbContext db) => await db.Produtos.ToListAsync()).RequireAuthorization();
 
 app.MapGet("/produtos/{id:int}", async (int id, AppDbContext db) =>
 {
@@ -186,6 +187,6 @@ if (app.Environment.IsDevelopment())
 }
 //Ativando o serviço de autenticação e autorização
 app.UseAuthentication();
-app.UseAuthentication();
+app.UseAuthorization();
 app.Run();
 
