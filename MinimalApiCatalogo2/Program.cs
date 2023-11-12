@@ -1,38 +1,28 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using MinimalApiCatalogo2.Context;
 
-// Criação do construtor da aplicação web
 var builder = WebApplication.CreateBuilder(args);
 
-// Adição de serviços ao contêiner de injeção de dependência
-// Configuração do Swagger/OpenAPI
+// Add services to the container.
+// Configuring Swagger/OpenAPI  
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Obtenção da string de conexão do arquivo de configuração
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-// Adição do contexto do banco de dados ao serviço de injeção de dependência
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(connectionString, ServerVersion(connectionString)));
+options.UseSqlServer(connectionString: "Data Source=PRILLNOTEBOOK28\\SQLEXPRESS;Initial Catalog=MinimalApiCatalogoDB;Integrated Security=True;TrustServerCertificate=true"));
+/*Desativar a Verificação SSL (Não Recomendado): Esta é uma opção que você pode considerar apenas
+em ambientes de desenvolvimento e nunca em produção. Você pode desativar a verificação SSL 
+adicionando "TrustServerCertificate=true" à sua string de conexão. No entanto, isso torna a conexão menos segura.*/
 
-// Método para configurar a versão do servidor SQL
-Action<SqlServerDbContextOptionsBuilder>? ServerVersion(string? connectionString)
-{
-    // Implementação não fornecida (deve ser definida conforme necessário)
-    throw new NotImplementedException("Erro de versão do Database.");
-}
-
-// Construção da aplicação
 var app = builder.Build();
 
-// Configuração do pipeline de solicitação HTTP
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// Execução da aplicação
 app.Run();
+
