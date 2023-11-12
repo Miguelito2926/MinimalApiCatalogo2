@@ -12,7 +12,7 @@ using MinimalApiCatalogo2.Context;
 namespace MinimalApiCatalogo2.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20231112030353_inicial")]
+    [Migration("20231112120600_inicial")]
     partial class inicial
     {
         /// <inheritdoc />

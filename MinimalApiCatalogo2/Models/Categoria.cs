@@ -1,4 +1,6 @@
-﻿namespace MinimalApiCatalogo2.Models;
+﻿using System.Text.Json.Serialization;
+
+namespace MinimalApiCatalogo2.Models;
 
 
 public class Categoria
@@ -8,5 +10,6 @@ public class Categoria
     public string? Descricao { get; set;}
 
     // Relacionamento um para muitos
+    [JsonIgnore]
     public ICollection<Produto>? Produtos { get; set; }
 }
