@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using MinimalApiCatalogo2.ApiEndpoints;
 using MinimalApiCatalogo2.Context;
 using MinimalApiCatalogo2.Models;
 using MinimalApiCatalogo2.Services;
@@ -43,31 +44,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+app.MapAutenticacaoEndpoints();
 
 app.MapGet("/", () => "Catálogo de Produtos - 2023").ExcludeFromDescription();
-
-app.MapPost("/login", [AllowAnonymous] (UserModel userModel, ITokenService tokenService) =>
-{
-    if (userModel == null)
-    {
-        return Results.BadRequest("Login Inválido");
-    }
-    if (userModel.UserName == "ednaldo" && userModel.Password == "teste@123")
-    {
-        var tokenString = tokenService.GerarToken(
-            app.Configuration["jwt:Key"],
-            app.Configuration["Jwt:Issuer"],
-            app.Configuration["Jwt:Audience"], userModel);
-        return Results.Ok(new { token = tokenString });
-    }
-    else
-    {
-        return Results.BadRequest("Login Inválido");
-    }
-}).Produces(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status200OK)
-            .WithName("Login")
-            .WithTags("Autenticacao");
 
 app.MapGet("/categorias", async (AppDbContext db) => await db.Categorias.ToListAsync()).WithTags("Categorias").RequireAuthorization();
 
@@ -124,7 +103,7 @@ app.MapGet("/produtos/{id:int}", async (int id, AppDbContext db) =>
          is Produto produto
         ? Results.Ok(produto)
         : Results.NotFound();
-});
+}).WithTags("Produtos");
 
 app.MapPost("/produtos", async (Produto produto, AppDbContext db) =>
 {
