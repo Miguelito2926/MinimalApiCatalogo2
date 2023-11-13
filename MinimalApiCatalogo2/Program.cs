@@ -69,7 +69,7 @@ app.MapPost("/login", [AllowAnonymous] (UserModel userModel, ITokenService token
             .WithName("Login")
             .WithTags("Autenticacao");
 
-app.MapGet("/categorias", async (AppDbContext db) => await db.Categorias.ToListAsync()).RequireAuthorization();
+app.MapGet("/categorias", async (AppDbContext db) => await db.Categorias.ToListAsync()).WithTags("Categorias").RequireAuthorization();
 
 app.MapGet("/categorias/{id:int}", async (int id, AppDbContext db) =>
 {
@@ -77,14 +77,14 @@ app.MapGet("/categorias/{id:int}", async (int id, AppDbContext db) =>
        is Categoria categoria
        ? Results.Ok(categoria)
        : Results.NotFound();
-});
+}).WithTags("Categorias");
 
 app.MapPost("/categorias", async (Categoria categoria, AppDbContext db) =>
 {
     db.Categorias.Add(categoria);
     await db.SaveChangesAsync();
     return Results.Created($"/categorias/{categoria.CategoriaId}", categoria);
-});
+}).WithTags("Categorias");
 
 app.MapPut("/categorias/{id:int}", async (int id, Categoria categoria, AppDbContext db) =>
 {
@@ -100,7 +100,7 @@ app.MapPut("/categorias/{id:int}", async (int id, Categoria categoria, AppDbCont
 
     await db.SaveChangesAsync();
     return Results.Ok(categoriaDB);
-});
+}).WithTags("Categorias");
 
 app.MapDelete("/categorias/{id:int}", async (int id, AppDbContext db) =>
 {
@@ -113,10 +113,10 @@ app.MapDelete("/categorias/{id:int}", async (int id, AppDbContext db) =>
     db.Categorias.Remove(categoria);
     await db.SaveChangesAsync();
     return Results.NoContent();
-});
+}).WithTags("Categorias");
 
 //---------------ENDPOINTS PARA PRODUTOS---------------------
-app.MapGet("/produtos", async (AppDbContext db) => await db.Produtos.ToListAsync()).RequireAuthorization();
+app.MapGet("/produtos", async (AppDbContext db) => await db.Produtos.ToListAsync()).WithTags("Produtos").RequireAuthorization();
 
 app.MapGet("/produtos/{id:int}", async (int id, AppDbContext db) =>
 {
@@ -131,7 +131,7 @@ app.MapPost("/produtos", async (Produto produto, AppDbContext db) =>
     db.Produtos.Add(produto);
     await db.SaveChangesAsync();
     return Results.Created($"/categorias/{produto.ProdutoId}", produto);
-});
+}).WithTags("Produtos");
 
 app.MapPut("/produtoss/{id:int}", async (int id, Produto produto, AppDbContext db) =>
 {
@@ -147,7 +147,7 @@ app.MapPut("/produtoss/{id:int}", async (int id, Produto produto, AppDbContext d
 
     await db.SaveChangesAsync();
     return Results.Ok(produtosDB);
-});
+}).WithTags("Produtos");
 
 app.MapPut("/produtos/{id:int}", async (int id, Produto produto, AppDbContext db) =>
 {
@@ -163,7 +163,7 @@ app.MapPut("/produtos/{id:int}", async (int id, Produto produto, AppDbContext db
 
     await db.SaveChangesAsync();
     return Results.Ok(produtoDB);
-});
+}).WithTags("Produtos");
 
 app.MapDelete("/produtos/{id:int}", async (int id, AppDbContext db) =>
 {
@@ -176,7 +176,7 @@ app.MapDelete("/produtos/{id:int}", async (int id, AppDbContext db) =>
     db.Produtos.Remove(produto);
     await db.SaveChangesAsync();
     return Results.NoContent();
-});
+}).WithTags("Produtos");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
