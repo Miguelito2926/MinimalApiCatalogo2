@@ -9,7 +9,7 @@ namespace MinimalApiCatalogo2.Services;
 public class TokenService : ITokenService
 {
 
- public string GerarToken(string key, string issuer, string audience, UserModel user)
+    public string GerarToken(string key, string issuer, string audience, UserModel user)
     {
         var claims = new[]
         {
@@ -20,18 +20,14 @@ public class TokenService : ITokenService
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-        var token = new JwtSecurityToken(issuer :issuer,
-            audience : audience,
+        var token = new JwtSecurityToken(issuer: issuer,
+            audience: audience,
             expires: DateTime.UtcNow.AddMinutes(120),
-            signingCredentials:credentials);
+            signingCredentials: credentials);
 
         var tokenHandler = new JwtSecurityTokenHandler();
         var stringToken = tokenHandler.WriteToken(token);
         return stringToken;
     }
 
-    string ITokenService.GerarToken(string key, string issuer, string audience, UserModel user)
-    {
-        throw new NotImplementedException();
-    }
 }
