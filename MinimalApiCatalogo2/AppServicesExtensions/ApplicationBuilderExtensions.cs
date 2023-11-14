@@ -1,30 +1,41 @@
-﻿namespace MinimalApiCatalogo2.AppServicesExtensions;
-
-public static class ApplicationBuilderExtensions
+﻿namespace MinimalApiCatalogo2.AppServicesExtensions
 {
-    public static IApplicationBuilder UseExceptionHandling(this IApplicationBuilder app, IWebHostEnvironment environment)
+    public static class ApplicationBuilderExtensions
     {
-        if (environment.IsDevelopment())
+        // Método para configurar o tratamento de exceções com base no ambiente
+        public static IApplicationBuilder UseExceptionHandling(this IApplicationBuilder app, IWebHostEnvironment environment)
         {
-            app.UseDeveloperExceptionPage();
+            // Se o ambiente for de desenvolvimento, usa a página de exceções do desenvolvedor
+            if (environment.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            return app;
         }
-        return app;
-    }
 
-    public static IApplicationBuilder UseAppCors(this IApplicationBuilder app)
-    {
-        app.UseCors(p =>
+        // Método para configurar as políticas CORS da aplicação
+        public static IApplicationBuilder UseAppCors(this IApplicationBuilder app)
         {
-            p.AllowAnyOrigin();
-            p.WithMethods("GET");
-            p.AllowAnyHeader();
-        });
-        return app;
-    }
-    public static IApplicationBuilder UseSwaggerMiddleware(this IApplicationBuilder app)
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI(c => { });
-        return app;
+            app.UseCors(p =>
+            {
+                // Permite qualquer origem
+                p.AllowAnyOrigin();
+                // Permite apenas requisições do tipo GET
+                p.WithMethods("GET");
+                // Permite qualquer cabeçalho
+                p.AllowAnyHeader();
+            });
+            return app;
+        }
+
+        // Método para adicionar middleware do Swagger
+        public static IApplicationBuilder UseSwaggerMiddleware(this IApplicationBuilder app)
+        {
+            // Habilita o uso do Swagger
+            app.UseSwagger();
+            // Configura a interface do usuário do Swagger (neste caso, sem configurações adicionais)
+            app.UseSwaggerUI(c => { });
+            return app;
+        }
     }
 }

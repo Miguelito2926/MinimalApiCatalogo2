@@ -1,62 +1,67 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿// Importando namespaces necessários
 using Microsoft.EntityFrameworkCore;
 using MinimalApiCatalogo2.Context;
 using MinimalApiCatalogo2.Models;
 
-namespace MinimalApiCatalogo2.ApiEndpoints;
-
-public static class CategoriasEndpoints
+namespace MinimalApiCatalogo2.ApiEndpoints
 {
-	public static void MapCategoriasEndpoints(this WebApplication app)
+    public static class CategoriasEndpoints
     {
-		{
-    app.MapGet("/categorias", async(AppDbContext db) => await db.Categorias.ToListAsync()).WithTags("Categorias").RequireAuthorization();
+        // Método para mapear os endpoints relacionados a categorias
+        public static void MapCategoriasEndpoints(this WebApplication app)
+        {
+            // Endpoint para obter todas as categorias
+            app.MapGet("/categorias", async (AppDbContext db) =>
+                await db.Categorias.ToListAsync()).WithTags("Categorias").RequireAuthorization();
 
-        app.MapGet("/categorias/{id:int}", async(int id, AppDbContext db) =>
-{
-    return await db.Categorias.FindAsync(id)
-       is Categoria categoria
-       ? Results.Ok(categoria)
-       : Results.NotFound();
-}).WithTags("Categorias");
+            // Endpoint para obter uma categoria por ID
+            app.MapGet("/categorias/{id:int}", async (int id, AppDbContext db) =>
+            {
+                return await db.Categorias.FindAsync(id)
+                    is Categoria categoria
+                    ? Results.Ok(categoria)
+                    : Results.NotFound();
+            }).WithTags("Categorias");
 
-    app.MapPost("/categorias", async(Categoria categoria, AppDbContext db) =>
-{
-    db.Categorias.Add(categoria);
-    await db.SaveChangesAsync();
-    return Results.Created($"/categorias/{categoria.CategoriaId}", categoria);
-}).WithTags("Categorias");
+            // Endpoint para adicionar uma nova categoria
+            app.MapPost("/categorias", async (Categoria categoria, AppDbContext db) =>
+            {
+                db.Categorias.Add(categoria);
+                await db.SaveChangesAsync();
+                return Results.Created($"/categorias/{categoria.CategoriaId}", categoria);
+            }).WithTags("Categorias");
 
-app.MapPut("/categorias/{id:int}", async(int id, Categoria categoria, AppDbContext db) =>
-{
-    if (categoria.CategoriaId != id)
-    {
-        return Results.BadRequest();
+            // Endpoint para atualizar uma categoria existente
+            app.MapPut("/categorias/{id:int}", async (int id, Categoria categoria, AppDbContext db) =>
+            {
+                if (categoria.CategoriaId != id)
+                {
+                    return Results.BadRequest();
+                }
+
+                var categoriaDB = await db.Categorias.FindAsync(id);
+                if (categoriaDB is null) return Results.NotFound();
+
+                categoriaDB.Nome = categoria.Nome;
+                categoriaDB.Descricao = categoria.Descricao;
+
+                await db.SaveChangesAsync();
+                return Results.Ok(categoriaDB);
+            }).WithTags("Categorias");
+
+            // Endpoint para excluir uma categoria
+            app.MapDelete("/categorias/{id:int}", async (int id, AppDbContext db) =>
+            {
+                var categoria = await db.Categorias.FindAsync(id);
+                if (categoria is null)
+                {
+                    return Results.NotFound();
+                }
+
+                db.Categorias.Remove(categoria);
+                await db.SaveChangesAsync();
+                return Results.NoContent();
+            }).WithTags("Categorias");
+        }
     }
-    var categoriaDB = await db.Categorias.FindAsync(id);
-if (categoriaDB is null) return Results.NotFound();
-
-categoriaDB.Nome = categoria.Nome;
-categoriaDB.Descricao = categoria.Descricao;
-
-await db.SaveChangesAsync();
-return Results.Ok(categoriaDB);
-}).WithTags("Categorias");
-
-app.MapDelete("/categorias/{id:int}", async (int id, AppDbContext db) =>
-{
-    var categoria = await db.Categorias.FindAsync(id);
-    if (categoria is null)
-    {
-        return Results.NotFound();
-    }
-
-    db.Categorias.Remove(categoria);
-    await db.SaveChangesAsync();
-    return Results.NoContent();
-}).WithTags("Categorias");
 }
-
-	}
-}
-
