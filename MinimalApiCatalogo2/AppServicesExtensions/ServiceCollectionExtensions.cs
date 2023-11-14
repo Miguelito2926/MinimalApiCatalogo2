@@ -68,10 +68,6 @@ namespace MinimalApiCatalogo2.AppServicesExtensions
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
-            /* Desativar a Verificação SSL (Não Recomendado): Esta é uma opção que você pode considerar apenas
-            em ambientes de desenvolvimento e nunca em produção. Você pode desativar a verificação SSL 
-            adicionando "TrustServerCertificate=true" à sua string de conexão. No entanto, isso torna a conexão menos segura.*/
-
             // Registrando o serviço Jwt na coleção de serviços
             builder.Services.AddSingleton<ITokenService>(new TokenService());
             return builder;
